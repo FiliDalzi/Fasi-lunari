@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendario Lunare</title>
+
+<style>
+:root {
+    --bg: #0b0f1a;
+    --card: #151a2c;
+    --text: #ffffff;
+}
+
+[data-theme="light"] {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --text: #111;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+}
+
+select {
+    padding: 0.4rem;
+    border-radius: 6px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 1rem;
+}
+
+.today {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.today-date {
+    font-size: 1rem;
+    opacity: 0.8;
+    margin-bottom: 0.5rem;
+}
+
+svg {
+    width: 150px;
+    height: 150px;
+}
+
+.fase {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.info {
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+.month-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1.5rem 0 0.5rem;
+}
+
+.month-nav button {
+    background: var(--card);
+    border: none;
+    color: var(--text);
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.4rem;
+}
+
+.day, .header {
+    background: var(--card);
+    padding: 0.5rem;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.header {
+    font-weight: bold;
+    opacity: 0.7;
+}
+
+.today-cell {
+    outline: 2px solid #6aa7ff;
+}
+
+@media (max-width: 600px) {
+    svg {
+        width: 120px;
+        height: 120px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <strong>🌙 Luna</strong>
+    <select id="theme">
+        <option value="system">Sistema</option>
+        <option value="dark">Scuro</option>
+        <option value="light">Chiaro</option>
+    </select>
+</header>
+
+<div class="container">
+
+    <div class="today">
+        <div class="today-date" id="today-date"></div>
+
+        <!-- 🌕 LUNA REALISTICA -->
+        <svg viewBox="-100 -100 200 200">
+            <defs>
+                <clipPath id="moon-clip">
+                    <circle r="80"/>
+                </clipPath>
+
+                <radialGradient id="shadow-gradient">
+                    <stop offset="0%" stop-color="#0b0f1a" stop-opacity="1"/>
+                    <stop offset="70%" stop-color="#0b0f1a" stop-opacity="0.9"/>
+                    <stop offset="100%" stop-color="#0b0f1a" stop-opacity="0"/>
+                </radialGradient>
+            </defs>
+
+            <!-- Texture della luna -->
+            <image
+                href="luna.png"
+                x="-80"
+                y="-80"
+                width="160"
+                height="160"
+                clip-path="url(#moon-clip)"
+                preserveAspectRatio="xMidYMid slice"
+            />
+
+            <!-- Ombra sfumata -->
+            <ellipse
+                id="shadow"
+                rx="80"
+                ry="80"
+                fill="url(#shadow-gradient)"
+                clip-path="url(#moon-clip)"
+            />
+        </svg>
+
+        <div class="fase" id="fase"></div>
+        <div class="info" id="info"></div>
+    </div>
+
+    <div class="month-nav">
+        <button id="prev">◀</button>
+        <strong id="month-label"></strong>
+        <button id="next">▶</button>
+    </div>
+
+    <div class="calendar" id="calendar"></div>
+
+</div>
+
+<script>
+/* ---------- TEMA ---------- */
+const themeSelect = document.getElementById("theme");
+
+function applyTheme(value) {
+    if (value === "system") {
+        document.documentElement.removeAttribute("data-theme");
+    } else {
+        document.documentElement.setAttribute("data-theme", value);
+    }
+    localStorage.setItem("theme", value);
+}
+
+themeSelect.value = localStorage.getItem("theme") || "system";
+applyTheme(themeSelect.value);
+themeSelect.addEventListener("change", e => applyTheme(e.target.value));
+
+/* ---------- LUNA ---------- */
+const lp = 2551443;
+const newMoon = new Date('2000-01-06T18:14:00Z').getTime();
+
+function moonPhase(date) {
+    return (((date.getTime() - newMoon) / 1000) % lp) / lp;
+}
+
+function faseNome(p) {
+    if (p < 0.03 || p > 0.97) return "Luna Nuova";
+    if (p < 0.22) return "Luna Crescente";
+    if (p < 0.28) return "Primo Quarto";
+    if (p < 0.47) return "Gibbosa Crescente";
+    if (p < 0.53) return "Luna Piena";
+    if (p < 0.72) return "Gibbosa Calante";
+    if (p < 0.78) return "Ultimo Quarto";
+    return "Luna Calante";
+}
+
+function updateToday() {
+    const now = new Date();
+    const p = moonPhase(now);
+    const illum = Math.round((1 - Math.cos(2 * Math.PI * p)) / 2 * 100);
+
+    const offset = (p <= 0.5)
+        ? 160 * (0.5 - p) * 2
+        : -160 * (p - 0.5) * 2;
+
+    document.getElementById("shadow").setAttribute("cx", offset);
+    document.getElementById("fase").textContent = faseNome(p);
+    document.getElementById("info").textContent =
+        `Illuminazione: ${illum}%`;
+
+    document.getElementById("today-date").textContent =
+        now.toLocaleDateString("it-IT", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+}
+
+/* ---------- CALENDARIO ---------- */
+let current = new Date();
+
+function buildCalendar() {
+    const cal = document.getElementById("calendar");
+    const label = document.getElementById("month-label");
+    cal.innerHTML = "";
+
+    const year = current.getFullYear();
+    const month = current.getMonth();
+    const today = new Date();
+
+    label.textContent = current.toLocaleDateString("it-IT", {
+        month: "long",
+        year: "numeric"
+    });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const days = new Date(year, month + 1, 0).getDate();
+
+    ["Dom","Lun","Mar","Mer","Gio","Ven","Sab"].forEach(h => {
+        const d = document.createElement("div");
+        d.className = "header";
+        d.textContent = h;
+        cal.appendChild(d);
+    });
+
+    for (let i = 0; i < firstDay; i++)
+        cal.appendChild(document.createElement("div"));
+
+    for (let d = 1; d <= days; d++) {
+        const date = new Date(year, month, d);
+        const p = moonPhase(date);
+
+        const cell = document.createElement("div");
+        cell.className = "day";
+
+        if (
+            d === today.getDate() &&
+            month === today.getMonth() &&
+            year === today.getFullYear()
+        ) cell.classList.add("today-cell");
+
+        cell.innerHTML = `<strong>${d}</strong><br>${p < 0.5 ? "🌔" : "🌖"}`;
+        cal.appendChild(cell);
+    }
+}
+
+document.getElementById("prev").onclick = () => {
+    current.setMonth(current.getMonth() - 1);
+    buildCalendar();
+};
+
+document.getElementById("next").onclick = () => {
+    current.setMonth(current.getMonth() + 1);
+    buildCalendar();
+};
+
+updateToday();
+buildCalendar();
+</script>
+
+</body>
+</html>
