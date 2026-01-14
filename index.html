@@ -108,6 +108,15 @@ svg {
     outline: 2px solid #6aa7ff;
 }
 
+/* Evidenziazioni */
+.full-moon {
+    box-shadow: 0 0 14px rgba(255,255,255,0.45);
+}
+
+.new-moon {
+    background: linear-gradient(135deg, #0006, #0003);
+}
+
 @media (max-width: 600px) {
     svg {
         width: 120px;
@@ -133,7 +142,6 @@ svg {
     <div class="today">
         <div class="today-date" id="today-date"></div>
 
-        <!-- 🌕 LUNA REALISTICA -->
         <svg viewBox="-100 -100 200 200">
             <defs>
                 <clipPath id="moon-clip">
@@ -141,31 +149,21 @@ svg {
                 </clipPath>
 
                 <radialGradient id="shadow-gradient">
-                    <stop offset="0%" stop-color="#0b0f1a" stop-opacity="1"/>
+                    <stop offset="0%" stop-color="#0b0f1a"/>
                     <stop offset="70%" stop-color="#0b0f1a" stop-opacity="0.9"/>
                     <stop offset="100%" stop-color="#0b0f1a" stop-opacity="0"/>
                 </radialGradient>
             </defs>
 
-            <!-- Texture della luna -->
-            <image
-                href="luna.png"
-                x="-80"
-                y="-80"
-                width="160"
-                height="160"
-                clip-path="url(#moon-clip)"
-                preserveAspectRatio="xMidYMid slice"
-            />
+            <image href="luna.png"
+                   x="-80" y="-80"
+                   width="160" height="160"
+                   clip-path="url(#moon-clip)" />
 
-            <!-- Ombra sfumata -->
-            <ellipse
-                id="shadow"
-                rx="80"
-                ry="80"
-                fill="url(#shadow-gradient)"
-                clip-path="url(#moon-clip)"
-            />
+            <ellipse id="shadow"
+                     rx="80" ry="80"
+                     fill="url(#shadow-gradient)"
+                     clip-path="url(#moon-clip)" />
         </svg>
 
         <div class="fase" id="fase"></div>
@@ -218,6 +216,17 @@ function faseNome(p) {
     return "Luna Calante";
 }
 
+function faseEmoji(p) {
+    if (p < 0.03 || p > 0.97) return "🌑";
+    if (p < 0.22) return "🌒";
+    if (p < 0.28) return "🌓";
+    if (p < 0.47) return "🌔";
+    if (p < 0.53) return "🌕";
+    if (p < 0.72) return "🌖";
+    if (p < 0.78) return "🌗";
+    return "🌘";
+}
+
 function updateToday() {
     const now = new Date();
     const p = moonPhase(now);
@@ -229,8 +238,7 @@ function updateToday() {
 
     document.getElementById("shadow").setAttribute("cx", offset);
     document.getElementById("fase").textContent = faseNome(p);
-    document.getElementById("info").textContent =
-        `Illuminazione: ${illum}%`;
+    document.getElementById("info").textContent = `Illuminazione: ${illum}%`;
 
     document.getElementById("today-date").textContent =
         now.toLocaleDateString("it-IT", {
@@ -258,18 +266,20 @@ function buildCalendar() {
         year: "numeric"
     });
 
-    const firstDay = new Date(year, month, 1).getDay();
-    const days = new Date(year, month + 1, 0).getDate();
-
-    ["Dom","Lun","Mar","Mer","Gio","Ven","Sab"].forEach(h => {
+    ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"].forEach(h => {
         const d = document.createElement("div");
         d.className = "header";
         d.textContent = h;
         cal.appendChild(d);
     });
 
+    let firstDay = new Date(year, month, 1).getDay();
+    firstDay = (firstDay + 6) % 7; // Lun = 0
+
     for (let i = 0; i < firstDay; i++)
         cal.appendChild(document.createElement("div"));
+
+    const days = new Date(year, month + 1, 0).getDate();
 
     for (let d = 1; d <= days; d++) {
         const date = new Date(year, month, d);
@@ -284,7 +294,10 @@ function buildCalendar() {
             year === today.getFullYear()
         ) cell.classList.add("today-cell");
 
-        cell.innerHTML = `<strong>${d}</strong><br>${p < 0.5 ? "🌔" : "🌖"}`;
+        if (p < 0.03 || p > 0.97) cell.classList.add("new-moon");
+        if (p > 0.47 && p < 0.53) cell.classList.add("full-moon");
+
+        cell.innerHTML = `<strong>${d}</strong><br>${faseEmoji(p)}`;
         cal.appendChild(cell);
     }
 }
