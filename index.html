@@ -148,11 +148,23 @@ svg {
                     <circle r="80"/>
                 </clipPath>
 
-                <radialGradient id="shadow-gradient">
-                    <stop offset="0%" stop-color="#0b0f1a"/>
-                    <stop offset="70%" stop-color="#0b0f1a" stop-opacity="0.9"/>
-                    <stop offset="100%" stop-color="#0b0f1a" stop-opacity="0"/>
-                </radialGradient>
+                <linearGradient id="shadow-gradient"
+                    x1="0%" y1="0%" x2="100%" y2="0%"
+                    gradientUnits="userSpaceOnUse">
+
+                    <!-- ombra profonda -->
+                    <stop offset="0%" stop-color="#000" stop-opacity="0.88"/>
+
+                    <!-- quasi tutta ombra -->
+                    <stop offset="65%" stop-color="#000" stop-opacity="0.9"/>
+
+                    <!-- terminatore stretto -->
+                    <stop offset="72%" stop-color="#000" stop-opacity="0.7"/>
+
+                    <!-- luce -->
+                    <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+                </linearGradient>
+
             </defs>
 
             <image href="luna.png"
@@ -160,10 +172,12 @@ svg {
                    width="160" height="160"
                    clip-path="url(#moon-clip)" />
 
-            <ellipse id="shadow"
-                     rx="80" ry="80"
-                     fill="url(#shadow-gradient)"
-                     clip-path="url(#moon-clip)" />
+            <circle id="shadow"
+                r="80"
+                fill="#000"
+                opacity="0.85"
+                clip-path="url(#moon-clip)" />
+
         </svg>
 
         <div class="fase" id="fase"></div>
@@ -230,13 +244,27 @@ function faseEmoji(p) {
 function updateToday() {
     const now = new Date();
     const p = moonPhase(now);
-    const illum = Math.round((1 - Math.cos(2 * Math.PI * p)) / 2 * 100);
 
-    const offset = (p <= 0.5)
-        ? 160 * (0.5 - p) * 2
-        : -160 * (p - 0.5) * 2;
+    const illumFrac = (1 - Math.cos(2 * Math.PI * p)) / 2;
+    const illum = Math.round(illumFrac * 100);
 
-    document.getElementById("shadow").setAttribute("cx", offset);
+    const shadow = document.getElementById("shadow");
+
+    // distanza del cerchio dell'ombra dal centro (curvatura)
+    const d = (1 - illumFrac) * 80; // 80 = raggio della luna
+    const x = p < 0.5 ? d : -d;
+
+    // aggiorna posizione cerchio ombra
+    shadow.setAttribute("cx", x);
+    shadow.setAttribute("cy", 0);
+
+document
+  .getElementById("shadow-gradient")
+  .setAttribute(
+    "gradientTransform",
+    `translate(${shift},0)`
+  );
+
     document.getElementById("fase").textContent = faseNome(p);
     document.getElementById("info").textContent = `Illuminazione: ${illum}%`;
 
