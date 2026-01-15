@@ -251,19 +251,25 @@ function updateToday() {
     const shadow = document.getElementById("shadow");
 
     // distanza del cerchio dell'ombra dal centro (curvatura)
-    const d = (1 - illumFrac) * 80; // 80 = raggio della luna
-    const x = p < 0.5 ? d : -d;
+    // Calcola curvatura dell'ombra: più curva vicino a 0 e 1, più piatta vicino a 0.25 e 0.75
+    const curveFactor = Math.sin(p * Math.PI); // varia da 0 a 1 a 0
+    const d = curveFactor * 80; // raggio massimo della curvatura
+    const shift = (p < 0.5 ? -d : d); // direzione coerente con fase
+
+    const angle = (p < 0.5 ? -p : 1 - p) * 60; // ±60° massimo
+document.getElementById("shadow-gradient").setAttribute(
+    "gradientTransform",
+    `translate(${shift},0) rotate(${angle},0,0)`
+);
 
     // aggiorna posizione cerchio ombra
-    shadow.setAttribute("cx", x);
+    shadow.setAttribute("cx", shift);
     shadow.setAttribute("cy", 0);
 
-document
-  .getElementById("shadow-gradient")
-  .setAttribute(
-    "gradientTransform",
-    `translate(${shift},0)`
-  );
+    // aggiorna gradiente
+    document
+      .getElementById("shadow-gradient")
+      .setAttribute("gradientTransform", `translate(${shift},0)`)
 
     document.getElementById("fase").textContent = faseNome(p);
     document.getElementById("info").textContent = `Illuminazione: ${illum}%`;
