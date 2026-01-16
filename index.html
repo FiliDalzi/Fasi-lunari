@@ -124,20 +124,6 @@ svg {
     }
 }
 
-.bar {
-    display: block;
-    margin: auto;
-}
-
-.linea-verticale {
-    width: 1px;
-    height: 500px;
-    background-color: #fff;
-    position: absolute;
-    top: 20px;
-    left: 45px;
-}
-
 </style>
 </head>
 
@@ -193,33 +179,6 @@ svg {
 
         </svg>
 
-        <svg class="bar" viewBox="0 0 100 14" width="160" height="22">
-            <!-- linea principale -->
-            <rect x="0" y="6" width="100" height="2" fill="#888"/>
-
-            <!-- tacche -->
-            <g stroke="#aaa" stroke-width="0.4">
-                <line x1="0" y1="4" x2="0" y2="10"/>
-                <line x1="10" y1="5" x2="10" y2="9"/>
-                <line x1="20" y1="5" x2="20" y2="9"/>
-                <line x1="30" y1="5" x2="30" y2="9"/>
-                <line x1="40" y1="5" x2="40" y2="9"/>
-                <line x1="50" y1="4" x2="50" y2="10"/>
-                <line x1="60" y1="5" x2="60" y2="9"/>
-                <line x1="70" y1="5" x2="70" y2="9"/>
-                <line x1="80" y1="5" x2="80" y2="9"/>
-                <line x1="90" y1="5" x2="90" y2="9"/>
-                <line x1="100" y1="4" x2="100" y2="10"/>
-            </g>
-
-            <!-- etichette -->
-            <g font-size="3" fill="#aaa" text-anchor="middle">
-                <text x="0" y="14">0%</text>
-                <text x="50" y="14">50%</text>
-                <text x="100" y="14">100%</text>
-            </g>
-        </svg>
-
         <div class="fase" id="fase"></div>
         <div class="info" id="info"></div>
     </div>
@@ -233,9 +192,6 @@ svg {
     <div class="calendar" id="calendar"></div>
 
 </div>
-
-    <div class="linea-verticale" id="linea"></div>
-
 <script>
 /* ---------- TEMA ---------- */
 const themeSelect = document.getElementById("theme");
@@ -402,24 +358,6 @@ document.getElementById("next").onclick = () => {
 
 updateToday();
 buildCalendar();
-
-const linea = document.getElementById('linea');
-let posizione = 50; // deve corrispondere al valore iniziale di "left" nel CSS
-
-document.addEventListener('keydown', (event) => {
-    const passo = 5; // quanti pixel muovere per ogni pressione
-
-    if(event.key === 'a' || event.key === 'A') {
-        posizione -= passo; // sposta a sinistra
-        if (posizione < 0) posizione = 0; // blocco lato sinistro
-    } 
-    else if(event.key === 'd' || event.key === 'D') {
-        posizione += passo; // sposta a destra
-        if (posizione > window.innerWidth - 1) posizione = window.innerWidth - 1; // blocco lato destro
-    }
-
-    linea.style.left = posizione + 'px';
-});
 
 </script>
 
