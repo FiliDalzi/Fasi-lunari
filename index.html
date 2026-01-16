@@ -152,7 +152,7 @@ svg {
                 <linearGradient id="shadow-gradient"
                     x1="-80" y1="0" x2="80" y2="0"
                     gradientUnits="userSpaceOnUse">
-
+                    
                     <!-- gradiente iniziale: sfumatura leggera a sinistra -->
                     <stop offset="10%" stop-color="#000" stop-opacity="0"/>
                     <stop offset="12%" stop-color="#000" stop-opacity="0.45"/>
@@ -175,7 +175,6 @@ svg {
                 r="80"
                 fill="url(#shadow-gradient)"
                 clip-path="url(#moon-clip)" />
-
 
         </svg>
 
@@ -260,7 +259,6 @@ function updateToday() {
 
     // inclina il gradiente in base alla fase
     const gradient = document.getElementById("shadow-gradient");
-    gradient.setAttribute("gradientTransform", `rotate(${angle}, 0, 0)`);
 
     // aggiorna gradiente con sfumatura dinamica
     const stops = document.querySelectorAll("#shadow-gradient stop");
@@ -291,6 +289,7 @@ function updateToday() {
             month: "long",
             year: "numeric"
         });
+
 }
 
 /* ---------- CALENDARIO ---------- */
