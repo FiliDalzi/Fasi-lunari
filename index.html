@@ -123,6 +123,21 @@ svg {
         height: 120px;
     }
 }
+
+.bar {
+    display: block;
+    margin: auto;
+}
+
+.linea-verticale {
+    width: 1px;
+    height: 500px;
+    background-color: #fff;
+    position: absolute;
+    top: 20px;
+    left: 45px;
+}
+
 </style>
 </head>
 
@@ -149,21 +164,19 @@ svg {
                 </clipPath>
 
                 <linearGradient id="shadow-gradient"
-                    x1="0%" y1="0%" x2="100%" y2="0%"
+                    x1="-80" y1="0" x2="80" y2="0"
                     gradientUnits="userSpaceOnUse">
 
-                    <!-- ombra profonda -->
-                    <stop offset="0%" stop-color="#000" stop-opacity="0.88"/>
+                    <!-- gradiente iniziale: sfumatura leggera a sinistra -->
+                    <stop offset="10%" stop-color="#000" stop-opacity="0"/>
+                    <stop offset="12%" stop-color="#000" stop-opacity="0.45"/>
+                    <stop offset="15%" stop-color="#000" stop-opacity="0.7"/>
 
-                    <!-- quasi tutta ombra -->
-                    <stop offset="65%" stop-color="#000" stop-opacity="0.9"/>
-
-                    <!-- terminatore stretto -->
-                    <stop offset="72%" stop-color="#000" stop-opacity="0.7"/>
-
-                    <!-- luce -->
-                    <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+                    <!-- ombra piena a destra -->
+                    <stop offset="18%" stop-color="#000" stop-opacity="0.9"/>
+                    <stop offset="100%" stop-color="#000" stop-opacity="0.9"/>
                 </linearGradient>
+
 
             </defs>
 
@@ -174,10 +187,37 @@ svg {
 
             <circle id="shadow"
                 r="80"
-                fill="#000"
-                opacity="0.85"
+                fill="url(#shadow-gradient)"
                 clip-path="url(#moon-clip)" />
 
+
+        </svg>
+
+        <svg class="bar" viewBox="0 0 100 14" width="160" height="22">
+            <!-- linea principale -->
+            <rect x="0" y="6" width="100" height="2" fill="#888"/>
+
+            <!-- tacche -->
+            <g stroke="#aaa" stroke-width="0.4">
+                <line x1="0" y1="4" x2="0" y2="10"/>
+                <line x1="10" y1="5" x2="10" y2="9"/>
+                <line x1="20" y1="5" x2="20" y2="9"/>
+                <line x1="30" y1="5" x2="30" y2="9"/>
+                <line x1="40" y1="5" x2="40" y2="9"/>
+                <line x1="50" y1="4" x2="50" y2="10"/>
+                <line x1="60" y1="5" x2="60" y2="9"/>
+                <line x1="70" y1="5" x2="70" y2="9"/>
+                <line x1="80" y1="5" x2="80" y2="9"/>
+                <line x1="90" y1="5" x2="90" y2="9"/>
+                <line x1="100" y1="4" x2="100" y2="10"/>
+            </g>
+
+            <!-- etichette -->
+            <g font-size="3" fill="#aaa" text-anchor="middle">
+                <text x="0" y="14">0%</text>
+                <text x="50" y="14">50%</text>
+                <text x="100" y="14">100%</text>
+            </g>
         </svg>
 
         <div class="fase" id="fase"></div>
@@ -193,6 +233,8 @@ svg {
     <div class="calendar" id="calendar"></div>
 
 </div>
+
+    <div class="linea-verticale" id="linea"></div>
 
 <script>
 /* ---------- TEMA ---------- */
@@ -245,35 +287,47 @@ function updateToday() {
     const now = new Date();
     const p = moonPhase(now);
 
-    const illumFrac = (1 - Math.cos(2 * Math.PI * p)) / 2;
+    // illuminazione realistica
+    let illumFrac = (1 - Math.cos(2 * Math.PI * p)) / 2;
+    illumFrac = illumFrac < 0.05 ? illumFrac / 2 : illumFrac;
     const illum = Math.round(illumFrac * 100);
 
     const shadow = document.getElementById("shadow");
 
-    // distanza del cerchio dell'ombra dal centro (curvatura)
-    // Calcola curvatura dell'ombra: più curva vicino a 0 e 1, più piatta vicino a 0.25 e 0.75
-    const curveFactor = Math.sin(p * Math.PI); // varia da 0 a 1 a 0
-    const d = curveFactor * 80; // raggio massimo della curvatura
-    const shift = (p < 0.5 ? -d : d); // direzione coerente con fase
+    // curvatura dell'ombra
+    const curveFactor = Math.sin(p * Math.PI);
+    const d = curveFactor * 80;
+    const shift = (p < 0.5 ? -d : d);
 
-    const angle = (p < 0.5 ? -p : 1 - p) * 60; // ±60° massimo
-document.getElementById("shadow-gradient").setAttribute(
-    "gradientTransform",
-    `translate(${shift},0) rotate(${angle},0,0)`
-);
+    // inclinazione del terminatore
+    const angle = (p < 0.5 ? -p : 1 - p) * 60;
 
-    // aggiorna posizione cerchio ombra
+    // inclina il gradiente in base alla fase
+    const gradient = document.getElementById("shadow-gradient");
+    gradient.setAttribute("gradientTransform", `rotate(${angle}, 0, 0)`);
+
+    // aggiorna gradiente con sfumatura dinamica
+    const stops = document.querySelectorAll("#shadow-gradient stop");
+
+    // illumFrac = percentuale di luce della luna (0 = nuova, 1 = piena)
+    stops[0].setAttribute("offset", 10 + illumFrac * 8 + "%"); // da 12% a ~20%
+    stops[1].setAttribute("offset", 12 + illumFrac * 8 + "%"); // da 15% a ~23%
+    stops[2].setAttribute("offset", 15 + illumFrac * 8 + "%"); // da 18% a ~26%
+    stops[3].setAttribute("offset", 18 + "%");                  // inizio ombra piena
+    stops[4].setAttribute("offset", "100%");                    // ombra piena a destra
+    // ombra piena a destra
+
+
+    // aggiorna cerchio ombra
     shadow.setAttribute("cx", shift);
     shadow.setAttribute("cy", 0);
+    shadow.setAttribute("fill", "url(#shadow-gradient)");
 
-    // aggiorna gradiente
-    document
-      .getElementById("shadow-gradient")
-      .setAttribute("gradientTransform", `translate(${shift},0)`)
-
+    // info luna
     document.getElementById("fase").textContent = faseNome(p);
     document.getElementById("info").textContent = `Illuminazione: ${illum}%`;
 
+    // data odierna
     document.getElementById("today-date").textContent =
         now.toLocaleDateString("it-IT", {
             weekday: "long",
@@ -348,6 +402,25 @@ document.getElementById("next").onclick = () => {
 
 updateToday();
 buildCalendar();
+
+const linea = document.getElementById('linea');
+let posizione = 50; // deve corrispondere al valore iniziale di "left" nel CSS
+
+document.addEventListener('keydown', (event) => {
+    const passo = 5; // quanti pixel muovere per ogni pressione
+
+    if(event.key === 'a' || event.key === 'A') {
+        posizione -= passo; // sposta a sinistra
+        if (posizione < 0) posizione = 0; // blocco lato sinistro
+    } 
+    else if(event.key === 'd' || event.key === 'D') {
+        posizione += passo; // sposta a destra
+        if (posizione > window.innerWidth - 1) posizione = window.innerWidth - 1; // blocco lato destro
+    }
+
+    linea.style.left = posizione + 'px';
+});
+
 </script>
 
 </body>
