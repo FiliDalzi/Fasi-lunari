@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="it">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Calendario Lunare</title>
-
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Calendario Lunare</title>
 <style>
 :root {
     --bg: #0b0f1a;
@@ -124,241 +123,393 @@ svg {
     }
 }
 
+/* Info Panel */
+:root {
+    --info-bg: #151a2c; /* tema scuro */
+}
+
+[data-theme="light"] {
+    --info-bg: #f0f2f7;
+}
+
+#info-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: -100%;  /* INIZIALMENTE NASCOSTO */
+    height: calc(100% - 60px); /* lascia 60px in alto visibili */
+    background: var(--info-bg);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.3);
+    transition: bottom 0.4s ease;
+    overflow-y: auto;
+    padding: 1rem;
+    z-index: 1000;
+}
+
+#info-panel.active {
+    bottom: 0; /* quando aperto, si ferma quasi in cima */
+}
+
+.info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+#close-info {
+    background:none;
+    border:none;
+    font-size:1.2rem;
+    cursor:pointer;
+    color:var(--text);
+}
+
+.info-content h2 {
+    text-align: center;
+    margin: 1rem 0 0.5rem;
+}
+
+.info-box {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    word-break: break-word;
+}
+
 </style>
 </head>
 
 <body>
+    <header>
+        <strong>🌙 Luna</strong>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <button id="info-btn" style="background:none; border:none; color:var(--text); font-size:1rem; cursor:pointer;">ℹ️ Info</button>
+            <select id="theme">
+                <option value="system">Sistema</option>
+                <option value="dark">Scuro</option>
+                <option value="light">Chiaro</option>
+            </select>
+        </div>
+    </header>
 
-<header>
-    <strong>🌙 Luna</strong>
-    <select id="theme">
-        <option value="system">Sistema</option>
-        <option value="dark">Scuro</option>
-        <option value="light">Chiaro</option>
-    </select>
-</header>
+    <!-- Info Panel -->
+    <div id="info-panel">
+        <div class="info-header">
+            <span>Informazioni</span>
+            <button id="close-info">✖</button>
+        </div>
+        <div class="info-content">
+            <h2>Informazioni sull'illuminazione</h2>
+            <div class="info-box">
+                L'illuminazione fa riferimento alla percentuale della superficie lunare rivolta verso la Terra che viene illuminata dal Sole. La luna piena è illuminata al 100%, mentre la luna nuova è illuminata allo 0%. Questa percentuale non tiene in considerazione se la Luna è sorta o meno o se ci sono delle nuvole, quindi il numero può essere superiore a zero anche quando la Luna non è visibile.
+            </div>
 
-<div class="container">
-
-    <div class="today">
-        <div class="today-date" id="today-date"></div>
-
-        <svg viewBox="-100 -100 200 200">
-            <defs>
-                <clipPath id="moon-clip">
-                    <circle r="80"/>
-                </clipPath>
-
-                <linearGradient id="shadow-gradient"
-                    x1="-80" y1="0" x2="80" y2="0"
-                    gradientUnits="userSpaceOnUse">
-                    
-                    <!-- gradiente iniziale: sfumatura leggera a sinistra -->
-                    <stop offset="10%" stop-color="#000" stop-opacity="0"/>
-                    <stop offset="12%" stop-color="#000" stop-opacity="0.45"/>
-                    <stop offset="15%" stop-color="#000" stop-opacity="0.7"/>
-
-                    <!-- ombra piena a destra -->
-                    <stop offset="18%" stop-color="#000" stop-opacity="0.9"/>
-                    <stop offset="100%" stop-color="#000" stop-opacity="0.9"/>
-                </linearGradient>
-
-
-            </defs>
-
-            <image href="luna.png"
-                   x="-80" y="-80"
-                   width="160" height="160"
-                   clip-path="url(#moon-clip)" />
-
-            <circle id="shadow"
-                r="80"
-                fill="url(#shadow-gradient)"
-                clip-path="url(#moon-clip)" />
-
-        </svg>
-
-        <div class="fase" id="fase"></div>
-        <div class="info" id="info"></div>
+            <h2>Informazioni sulla distanza della Luna</h2>
+            <div class="info-box">
+                La Luna ha un'orbita ellittica, quindi la sua distanza dalla Terra cambia nel corso del mese. Tale distanza è misurata dal nucleo della Luna al nucleo della Terra e varia da circa 356.500 km a 406.700 km.
+            </div>
+        </div>
     </div>
 
-    <div class="month-nav">
-        <button id="prev">◀</button>
-        <strong id="month-label"></strong>
-        <button id="next">▶</button>
+    <div class="container">
+
+        <div class="today">
+            <div class="today-date" id="today-date"></div>
+
+            <svg viewBox="-100 -100 200 200">
+                <defs>
+                    <clipPath id="moon-clip">
+                        <circle r="80" />
+                    </clipPath>
+                </defs>
+
+                <!-- immagine luna -->
+                <image href="luna.png"
+                    x="-80" y="-80"
+                    width="160" height="160"
+                    clip-path="url(#moon-clip)" />
+
+                <!-- OMBRA (CERCHIO NERO) -->
+                <circle id="shadow"
+                        r="80"
+                        cx="0"
+                        cy="0"
+                        fill="#000"
+                        clip-path="url(#moon-clip)" />
+            </svg>
+
+
+            <div class="fase" id="fase"></div>
+            <div class="info" id="info"></div>
+        </div>
+
+        <div class="month-nav">
+            <button id="prev">◀</button>
+            <strong id="month-label"></strong>
+            <button id="next">▶</button>
+        </div>
+
+        <div class="calendar" id="calendar"></div>
+
     </div>
+    <script>
+    /* ---------- TEMA ---------- */
+    const themeSelect = document.getElementById("theme");
 
-    <div class="calendar" id="calendar"></div>
-
-</div>
-<script>
-/* ---------- TEMA ---------- */
-const themeSelect = document.getElementById("theme");
-
-function applyTheme(value) {
-    if (value === "system") {
-        document.documentElement.removeAttribute("data-theme");
-    } else {
-        document.documentElement.setAttribute("data-theme", value);
+    function applyTheme(value) {
+        if (value === "system") {
+            document.documentElement.removeAttribute("data-theme");
+        } else {
+            document.documentElement.setAttribute("data-theme", value);
+        }
+        localStorage.setItem("theme", value);
     }
-    localStorage.setItem("theme", value);
-}
 
-themeSelect.value = localStorage.getItem("theme") || "system";
-applyTheme(themeSelect.value);
-themeSelect.addEventListener("change", e => applyTheme(e.target.value));
+    themeSelect.value = localStorage.getItem("theme") || "system";
+    applyTheme(themeSelect.value);
+    themeSelect.addEventListener("change", e => applyTheme(e.target.value));
 
-/* ---------- LUNA ---------- */
-const lp = 2551443;
-const newMoon = new Date('2000-01-06T18:14:00Z').getTime();
+    /* ---------- LUNA ---------- */
+    const lp = 2551443;
+    const newMoon = new Date('2000-01-06T18:14:00Z').getTime();
 
-function moonPhase(date) {
-    return (((date.getTime() - newMoon) / 1000) % lp) / lp;
-}
+    function moonPhase(date) {
+        return (((date.getTime() - newMoon) / 1000) % lp) / lp;
+    }
 
-function faseNome(p) {
-    if (p < 0.03 || p > 0.97) return "Luna Nuova";
-    if (p < 0.22) return "Luna Crescente";
-    if (p < 0.28) return "Primo Quarto";
-    if (p < 0.47) return "Gibbosa Crescente";
-    if (p < 0.53) return "Luna Piena";
-    if (p < 0.72) return "Gibbosa Calante";
-    if (p < 0.78) return "Ultimo Quarto";
-    return "Luna Calante";
-}
+    function faseNome(p) {
+        if (p < 0.03 || p > 0.97) return "Luna Nuova";
+        if (p < 0.22) return "Luna Crescente";
+        if (p < 0.28) return "Primo Quarto";
+        if (p < 0.47) return "Gibbosa Crescente";
+        if (p < 0.53) return "Luna Piena";
+        if (p < 0.72) return "Gibbosa Calante";
+        if (p < 0.78) return "Ultimo Quarto";
+        return "Luna Calante";
+    }
 
-function faseEmoji(p) {
-    if (p < 0.03 || p > 0.97) return "🌑";
-    if (p < 0.22) return "🌒";
-    if (p < 0.28) return "🌓";
-    if (p < 0.47) return "🌔";
-    if (p < 0.53) return "🌕";
-    if (p < 0.72) return "🌖";
-    if (p < 0.78) return "🌗";
-    return "🌘";
-}
+    function faseEmoji(p) {
+        if (p < 0.03 || p > 0.97) return "🌑";
+        if (p < 0.22) return "🌒";
+        if (p < 0.28) return "🌓";
+        if (p < 0.47) return "🌔";
+        if (p < 0.53) return "🌕";
+        if (p < 0.72) return "🌖";
+        if (p < 0.78) return "🌗";
+        return "🌘";
+    }
 
-function updateToday() {
-    const now = new Date();
-    const p = moonPhase(now);
+    function updateToday() {
+        const now = new Date();
+        const p = moonPhase(now); // 0 → nuova, 0.5 → piena
 
-    // illuminazione realistica
-    let illumFrac = (1 - Math.cos(2 * Math.PI * p)) / 2;
-    illumFrac = illumFrac < 0.05 ? illumFrac / 2 : illumFrac;
-    const illum = Math.round(illumFrac * 100);
+        /* ---------- ILLUMINAZIONE REALE ---------- */
+        const illumFrac = (1 - Math.cos(2 * Math.PI * p)) / 2;
+        const illum = Math.round(illumFrac * 100);
 
-    const shadow = document.getElementById("shadow");
+        const shadow = document.getElementById("shadow");
 
-    // curvatura dell'ombra
-    const curveFactor = Math.sin(p * Math.PI);
-    const d = curveFactor * 80;
-    const shift = (p < 0.5 ? -d : d);
+        /* ---------- CURVATURA TERMINATORE ---------- */
+        const lightFactor = 1 - 2 * illumFrac;
 
-    // inclinazione del terminatore
-    const angle = (p < 0.5 ? -p : 1 - p) * 60;
+        /* ---------- DIREZIONE ---------- */
+        const direction = p < 0.5 ? -1 : 1;
 
-    // inclina il gradiente in base alla fase
-    const gradient = document.getElementById("shadow-gradient");
+        /* ---------- SPOSTAMENTO OMBRA ---------- */
+        const R = 80;
+        const shadowRadius = R * (1 + Math.abs(lightFactor));
+        const shift = direction * lightFactor * R;
 
-    // aggiorna gradiente con sfumatura dinamica
-    const stops = document.querySelectorAll("#shadow-gradient stop");
+        shadow.setAttribute("r", shadowRadius);
+        shadow.setAttribute("cx", shift);
+        shadow.setAttribute("cy", 0);
+        shadow.setAttribute("fill", "rgba(0,0,0,0.8)");
 
-    // illumFrac = percentuale di luce della luna (0 = nuova, 1 = piena)
-    stops[0].setAttribute("offset", 10 + illumFrac * 8 + "%"); // da 12% a ~20%
-    stops[1].setAttribute("offset", 12 + illumFrac * 8 + "%"); // da 15% a ~23%
-    stops[2].setAttribute("offset", 15 + illumFrac * 8 + "%"); // da 18% a ~26%
-    stops[3].setAttribute("offset", 18 + "%");                  // inizio ombra piena
-    stops[4].setAttribute("offset", "100%");                    // ombra piena a destra
-    // ombra piena a destra
+        const tilt = direction * 12;
+        shadow.setAttribute("transform", `rotate(${tilt})`);
+
+        /* ---------- TESTI ---------- */
+        document.getElementById("fase").textContent = faseNome(p);
+
+        // Calcolo distanza Luna (approssimativa)
+        const perigeo = 356500; // km
+        const apogeo = 406700;  // km
+        const distance = Math.round(perigeo + (apogeo - perigeo) * Math.abs(Math.sin(2 * Math.PI * p)));
+
+        // Formattazione con il punto come separatore delle migliaia
+        const distanceFormatted = distance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+        // Aggiorna il div info con due righe
+        document.getElementById("info").innerHTML =
+            `Illuminazione: ${illum}%<div style="margin-top:6px;">Distanza: ${distanceFormatted} km</div>`;
 
 
-    // aggiorna cerchio ombra
-    shadow.setAttribute("cx", shift);
-    shadow.setAttribute("cy", 0);
-    shadow.setAttribute("fill", "url(#shadow-gradient)");
+        /* ---------- DATA ---------- */
+        document.getElementById("today-date").textContent =
+            now.toLocaleDateString("it-IT", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            });
+    }
 
-    // info luna
-    document.getElementById("fase").textContent = faseNome(p);
-    document.getElementById("info").textContent = `Illuminazione: ${illum}%`;
 
-    // data odierna
-    document.getElementById("today-date").textContent =
-        now.toLocaleDateString("it-IT", {
-            weekday: "long",
-            day: "numeric",
+
+    /* ---------- CALENDARIO ---------- */
+    let current = new Date();
+
+    function buildCalendar() {
+        const cal = document.getElementById("calendar");
+        const label = document.getElementById("month-label");
+        cal.innerHTML = "";
+
+        const year = current.getFullYear();
+        const month = current.getMonth();
+        const today = new Date();
+
+        label.textContent = current.toLocaleDateString("it-IT", {
             month: "long",
             year: "numeric"
         });
 
-}
+        ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"].forEach(h => {
+            const d = document.createElement("div");
+            d.className = "header";
+            d.textContent = h;
+            cal.appendChild(d);
+        });
 
-/* ---------- CALENDARIO ---------- */
-let current = new Date();
+        let firstDay = new Date(year, month, 1).getDay();
+        firstDay = (firstDay + 6) % 7; // Lun = 0
 
-function buildCalendar() {
-    const cal = document.getElementById("calendar");
-    const label = document.getElementById("month-label");
-    cal.innerHTML = "";
+        for (let i = 0; i < firstDay; i++)
+            cal.appendChild(document.createElement("div"));
 
-    const year = current.getFullYear();
-    const month = current.getMonth();
-    const today = new Date();
+        const days = new Date(year, month + 1, 0).getDate();
 
-    label.textContent = current.toLocaleDateString("it-IT", {
-        month: "long",
-        year: "numeric"
-    });
+        for (let d = 1; d <= days; d++) {
+            const date = new Date(year, month, d);
+            const p = moonPhase(date);
 
-    ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"].forEach(h => {
-        const d = document.createElement("div");
-        d.className = "header";
-        d.textContent = h;
-        cal.appendChild(d);
-    });
+            const cell = document.createElement("div");
+            cell.className = "day";
 
-    let firstDay = new Date(year, month, 1).getDay();
-    firstDay = (firstDay + 6) % 7; // Lun = 0
+            if (
+                d === today.getDate() &&
+                month === today.getMonth() &&
+                year === today.getFullYear()
+            ) cell.classList.add("today-cell");
 
-    for (let i = 0; i < firstDay; i++)
-        cal.appendChild(document.createElement("div"));
+            if (p < 0.03 || p > 0.97) cell.classList.add("new-moon");
+            if (p > 0.47 && p < 0.53) cell.classList.add("full-moon");
 
-    const days = new Date(year, month + 1, 0).getDate();
-
-    for (let d = 1; d <= days; d++) {
-        const date = new Date(year, month, d);
-        const p = moonPhase(date);
-
-        const cell = document.createElement("div");
-        cell.className = "day";
-
-        if (
-            d === today.getDate() &&
-            month === today.getMonth() &&
-            year === today.getFullYear()
-        ) cell.classList.add("today-cell");
-
-        if (p < 0.03 || p > 0.97) cell.classList.add("new-moon");
-        if (p > 0.47 && p < 0.53) cell.classList.add("full-moon");
-
-        cell.innerHTML = `<strong>${d}</strong><br>${faseEmoji(p)}`;
-        cal.appendChild(cell);
+            cell.innerHTML = `<strong>${d}</strong><br>${faseEmoji(p)}`;
+            cal.appendChild(cell);
+        }
     }
-}
 
-document.getElementById("prev").onclick = () => {
-    current.setMonth(current.getMonth() - 1);
+    document.getElementById("prev").onclick = () => {
+        current.setMonth(current.getMonth() - 1);
+        buildCalendar();
+    };
+
+    document.getElementById("next").onclick = () => {
+        current.setMonth(current.getMonth() + 1);
+        buildCalendar();
+    };
+
+    updateToday();
     buildCalendar();
-};
 
-document.getElementById("next").onclick = () => {
-    current.setMonth(current.getMonth() + 1);
-    buildCalendar();
-};
+    // Pulsante Info
+    const infoBtn = document.getElementById("info-btn");
+    const infoPanel = document.getElementById("info-panel");
+    const closeInfo = document.getElementById("close-info");
 
-updateToday();
-buildCalendar();
+    // Apri pannello
+    infoBtn.addEventListener("click", () => {
+        // reset bottom per far partire la transizione
+        infoPanel.style.transition = "bottom 0.4s ease";
+        infoPanel.style.bottom = "0";
+        infoPanel.classList.add("active");
+    });
 
-</script>
+    // Chiudi pannello con X
+    closeInfo.addEventListener("click", () => {
+        infoPanel.style.transition = "bottom 0.4s ease";
+        infoPanel.style.bottom = "-100%";
+        // rimuoviamo active dopo la fine della transizione
+        setTimeout(() => {
+            infoPanel.classList.remove("active");
+        }, 400);
+    });
 
+    // Drag verso il basso
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+
+    function startDrag(y) {
+        startY = y;
+        isDragging = true;
+        infoPanel.style.transition = "none";
+    }
+
+    function moveDrag(y) {
+        if (!isDragging) return;
+        currentY = y - startY;
+        if (currentY > 0) {
+            infoPanel.style.bottom = `-${currentY}px`;
+        }
+    }
+
+    function endDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+        infoPanel.style.transition = "bottom 0.4s ease";
+        if (currentY > window.innerHeight / 3) { // se trascini abbastanza -> chiudi
+            infoPanel.style.bottom = "-100%";
+            setTimeout(() => {
+                infoPanel.classList.remove("active");
+            }, 400);
+        } else { // altrimenti torna su
+            infoPanel.style.bottom = "0";
+        }
+    }
+
+    // Eventi mouse
+    infoPanel.addEventListener("mousedown", e => startDrag(e.clientY));
+    infoPanel.addEventListener("mousemove", e => moveDrag(e.clientY));
+    infoPanel.addEventListener("mouseup", endDrag);
+    infoPanel.addEventListener("mouseleave", endDrag);
+
+    // Eventi touch
+    infoPanel.addEventListener("touchstart", e => startDrag(e.touches[0].clientY));
+    infoPanel.addEventListener("touchmove", e => moveDrag(e.touches[0].clientY));
+    infoPanel.addEventListener("touchend", endDrag);
+
+    // Aggiorna colore pannello in base al tema
+    function updateInfoPanelColor(theme) {
+        if (theme === "dark") {
+            infoPanel.style.background = "#1c2237"; // leggermente più chiaro
+        } else if (theme === "light") {
+            infoPanel.style.background = "#f0f2f7";
+        } else {
+            infoPanel.style.background = getComputedStyle(document.documentElement).getPropertyValue('--info-bg');
+        }
+    }
+
+    updateInfoPanelColor(themeSelect.value);
+    themeSelect.addEventListener("change", e => updateInfoPanelColor(e.target.value));
+
+    </script>
 </body>
 </html>
